@@ -6,6 +6,7 @@ curl -X POST http://127.0.0.1:8000/speak \
 
 """
 
+import io
 import json
 import subprocess
 import sys
@@ -27,8 +28,15 @@ class SpeakHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def respond_audio(self, body):
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/wav")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_POST(self):
-        if self.path != "/speak":
+        if self.path not in ("/speak", "/synthesize"):
             self.respond(404, {"error": "Not found"})
             return
 
@@ -53,12 +61,17 @@ class SpeakHandler(BaseHTTPRequestHandler):
 
         try:
             sample_rate, waveform = tts.synthesize(text)
+            if self.path == "/synthesize":
+                with io.BytesIO() as audio:
+                    sf.write(audio, waveform, sample_rate, format="WAV")
+                    self.respond_audio(audio.getvalue())
+                return
             with tempfile.NamedTemporaryFile(suffix=".wav") as audio:
                 sf.write(audio.name, waveform, sample_rate)
                 subprocess.run(["aplay", "-q", audio.name], check=True)
         except Exception as error:
             print(f"Speech failed: {error}", file=sys.stderr)
-            self.respond(500, {"error": "Speech playback failed"})
+            self.respond(500, {"error": "Speech synthesis failed"})
             return
 
         self.respond(200, {"status": "played"})
