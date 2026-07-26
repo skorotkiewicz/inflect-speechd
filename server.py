@@ -46,6 +46,9 @@ class SpeakHandler(BaseHTTPRequestHandler):
                 raise ValueError
             payload = json.loads(self.rfile.read(length))
             text = payload.get("text", "")
+            speed = payload.get("speed", 1.0)
+            variation = payload.get("variation", 0.667)
+            seed = payload.get("seed", 0)
             if not isinstance(text, str) or not text.strip():
                 raise ValueError
             if len(text) > MAX_TEXT_LENGTH:
@@ -55,12 +58,24 @@ class SpeakHandler(BaseHTTPRequestHandler):
             self.respond(400, {"error": "Send JSON containing non-empty text"})
             return
 
+        if isinstance(speed, bool) or not isinstance(speed, (int, float)) or not 0.5 <= speed <= 2.0:
+            self.respond(400, {"error": "speed must be between 0.5 and 2.0"})
+            return
+        if isinstance(variation, bool) or not isinstance(variation, (int, float)) or not 0.0 <= variation <= 1.0:
+            self.respond(400, {"error": "variation must be between 0.0 and 1.0"})
+            return
+        if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed <= 2**63 - 1:
+            self.respond(400, {"error": "seed must be a non-negative integer"})
+            return
+
         text = text.rstrip()
         if text[-1] not in ".!?;:":
             text += "."
 
         try:
-            sample_rate, waveform = tts.synthesize(text)
+            sample_rate, waveform = tts.synthesize(
+                text, speed=speed, variation=variation, seed=seed
+            )
             if self.path == "/synthesize":
                 with io.BytesIO() as audio:
                     sf.write(audio, waveform, sample_rate, format="WAV")

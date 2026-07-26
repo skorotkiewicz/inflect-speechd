@@ -56,11 +56,18 @@ journalctl --user -u inflect-tts.service -f
 - `POST /speak` synthesizes and plays audio on the server.
 - `POST /synthesize` returns a WAV response without playing it.
 
-Both accept JSON:
+Both accept JSON. `speed`, `variation`, and `seed` are optional:
 
 ```json
-{"text":"Hello from Inflect."}
+{
+  "text": "Hello from Inflect.",
+  "speed": 1.15,
+  "variation": 0.5,
+  "seed": 42
+}
 ```
+
+The defaults are `1.0` for speed, `0.667` for variation, and `0` for seed. Speed must be between `0.5` and `2.0`; variation must be between `0.0` and `1.0`; seed must be a non-negative integer.
 
 The server appends a period when text has no terminal punctuation. Inflect needs terminal punctuation to finish the last word cleanly.
 
@@ -87,15 +94,35 @@ The wrapper is stored at:
 #!/usr/bin/env bash
 set -o pipefail
 
-python3 -c 'import json, sys; json.dump({"text": sys.stdin.read()}, sys.stdout)' \
+RATE="${1:-0}"
+VARIATION="${2:-0.667}"
+SEED="${3:-0}"
+
+python3 -c '
+import json
+import sys
+
+rate = max(-100.0, min(100.0, float(sys.argv[1])))
+speed = 1.0 + (rate / 100.0 if rate >= 0 else rate / 200.0)
+json.dump(
+    {
+        "text": sys.stdin.read(),
+        "speed": speed,
+        "variation": float(sys.argv[2]),
+        "seed": int(sys.argv[3]),
+    },
+    sys.stdout,
+)
+' "$RATE" "$VARIATION" "$SEED" \
     | curl -fsS \
         -H 'Content-Type: application/json' \
         --data-binary @- \
         http://127.0.0.1:8000/synthesize \
     | aplay -q
+    # | mpv --no-terminal --really-quiet --no-video --volume="$VOLUME" -
 ```
 
-The wrapper converts stdin to JSON, requests WAV data from the persistent server, and sends the response to `aplay`.
+The wrapper converts stdin to JSON, maps Speech Dispatcher rate `-100..100` to Inflect speed `0.5..2.0`, forwards variation and seed, requests WAV data from the persistent server, and sends the response to `aplay`. Its positional defaults are `0`, `0.667`, and `0`.
 
 ## Generic output module
 
@@ -106,7 +133,7 @@ The module configuration is stored at:
 ```
 
 ```conf
-GenericExecuteSynth "echo \"$DATA\" | /home/mod/.config/speech-dispatcher/modules/inflect-tts-wrapper.sh"
+GenericExecuteSynth "echo \"$DATA\" | /home/mod/.config/speech-dispatcher/modules/inflect-tts-wrapper.sh $RATE 0.667 0 $VOLUME"
 GenericCmdDependency "curl"
 
 GenericLanguage "en" "en" "UTF-8"
@@ -149,6 +176,12 @@ Select Inflect explicitly:
 spd-say -w -o inflect "Hello from Inflect."
 ```
 
+Use Speech Dispatcher's maximum rate, which maps to Inflect speed `2.0`:
+
+```bash
+spd-say -w -o inflect -r 100 "Inflect at maximum speed."
+```
+
 To make Inflect the default, change the existing `DefaultModule` line in `speechd.conf`:
 
 ```conf
@@ -177,5 +210,3 @@ Test the complete path:
 ```bash
 spd-say -w -o inflect "Speech Dispatcher is using Inflect."
 ```
-
-The current module ignores Speech Dispatcher rate, pitch, and volume settings. It always uses the synthesis defaults from `server.py`.
