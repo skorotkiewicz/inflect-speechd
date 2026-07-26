@@ -97,6 +97,7 @@ set -o pipefail
 RATE="${1:-0}"
 VARIATION="${2:-0.667}"
 SEED="${3:-0}"
+VOLUME="${4:-100}"
 
 python3 -c '
 import json
