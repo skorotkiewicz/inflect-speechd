@@ -68,7 +68,8 @@ class SpeakHandler(BaseHTTPRequestHandler):
             self.respond(400, {"error": "seed must be a non-negative integer"})
             return
 
-        text = text.rstrip()
+        # Speech Dispatcher shell-escapes apostrophes before substitution.
+        text = text.replace("'\\''", "'").rstrip()
         if text[-1] not in ".!?;:":
             text += "."
 

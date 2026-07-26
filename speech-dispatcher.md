@@ -134,7 +134,7 @@ The module configuration is stored at:
 ```
 
 ```conf
-GenericExecuteSynth "echo \"$DATA\" | /home/mod/.config/speech-dispatcher/modules/inflect-tts-wrapper.sh $RATE 0.667 0 $VOLUME"
+GenericExecuteSynth "printf %s \'$DATA\' | /home/mod/.config/speech-dispatcher/modules/inflect-tts-wrapper.sh $RATE 0.667 0 $VOLUME"
 GenericCmdDependency "curl"
 
 GenericLanguage "en" "en" "UTF-8"
