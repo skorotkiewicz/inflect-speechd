@@ -1,0 +1,14 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.wav
+
+Inflect-Nano-v2-ONNX
+Inflect-Micro-v2-ONNX
