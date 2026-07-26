@@ -70,6 +70,8 @@ class SpeakHandler(BaseHTTPRequestHandler):
 
         # Speech Dispatcher shell-escapes apostrophes before substitution.
         text = text.replace("'\\''", "'").rstrip()
+        if text.isupper():
+            text = text.lower()
         if text[-1] not in ".!?;:":
             text += "."
 
