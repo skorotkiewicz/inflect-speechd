@@ -4,8 +4,8 @@ After=pipewire.service
 
 [Service]
 Type=simple
-WorkingDirectory=/home/mod/Dev/Python/Voice
-ExecStart=/home/mod/Dev/Python/Voice/.venv/bin/python server.py
+WorkingDirectory=/absolute/path/to/inflect-speechd
+ExecStart=/absolute/path/to/inflect-speechd/.venv/bin/python server.py
 Restart=on-failure
 RestartSec=2
 
