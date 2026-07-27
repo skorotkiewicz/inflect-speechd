@@ -1,7 +1,7 @@
 [project]
-name = "voice"
+name = "inflect-speechd"
 version = "0.1.0"
-description = "Add your description here"
+description = "Local Inflect TTS server with Speech Dispatcher integration."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -25,3 +25,23 @@ torch = { index = "pytorch-cpu" }
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ty.environment]
+python-version = "3.13"
+
+[tool.pytest.ini_options]
+norecursedirs = ["resources"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.5",
+    "ty>=0.0.63",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

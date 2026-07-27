@@ -58,10 +58,18 @@ class SpeakHandler(BaseHTTPRequestHandler):
             self.respond(400, {"error": "Send JSON containing non-empty text"})
             return
 
-        if isinstance(speed, bool) or not isinstance(speed, (int, float)) or not 0.5 <= speed <= 2.0:
+        if (
+            isinstance(speed, bool)
+            or not isinstance(speed, (int, float))
+            or not 0.5 <= speed <= 2.0
+        ):
             self.respond(400, {"error": "speed must be between 0.5 and 2.0"})
             return
-        if isinstance(variation, bool) or not isinstance(variation, (int, float)) or not 0.0 <= variation <= 1.0:
+        if (
+            isinstance(variation, bool)
+            or not isinstance(variation, (int, float))
+            or not 0.0 <= variation <= 1.0
+        ):
             self.respond(400, {"error": "variation must be between 0.0 and 1.0"})
             return
         if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed <= 2**63 - 1:
@@ -76,6 +84,7 @@ class SpeakHandler(BaseHTTPRequestHandler):
             text += "."
 
         try:
+            assert tts is not None
             sample_rate, waveform = tts.synthesize(
                 text, speed=speed, variation=variation, seed=seed
             )
@@ -102,7 +111,7 @@ def main():
 
     model_dir = snapshot_download("owensong/Inflect-Nano-v2")
     sys.path[:0] = [f"{model_dir}/runtime", model_dir]
-    from inference import InflectTTS
+    from inference import InflectTTS  # ty: ignore[unresolved-import]
 
     tts = InflectTTS(model_dir, device="cpu")
     server = HTTPServer(("127.0.0.1", 8000), SpeakHandler)

@@ -1,11 +1,12 @@
 import sys
-from huggingface_hub import snapshot_download
+
 import soundfile as sf
+from huggingface_hub import snapshot_download
 
 model_dir = snapshot_download("owensong/Inflect-Nano-v2")
 sys.path[:0] = [f"{model_dir}/runtime", model_dir]
 
-from inference import InflectTTS
+from inference import InflectTTS  # noqa: E402  # ty: ignore[unresolved-import]
 
 tts = InflectTTS(model_dir, device="cpu")
 sample_rate, waveform = tts.synthesize("The complete model runs locally.")

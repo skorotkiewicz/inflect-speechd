@@ -67,3 +67,14 @@ spd-say -w -o inflect -r 40 -i 75 "Hello from Speech Dispatcher."
 ```
 
 `-r` controls Inflect speed and `-i` controls mpv playback volume. Both use Speech Dispatcher's `-100..100` scale.
+
+## Development
+
+Managed with [uv](https://docs.astral.sh/uv/); linting/formatting with [ruff](https://docs.astral.sh/ruff/); type checking with [ty](https://github.com/astral-sh/ty). 
+
+```bash
+uv run ruff check .   # lint
+uv run ruff format .  # format
+uv run ty check       # type check
+uv run pytest -q      # tests
+```
